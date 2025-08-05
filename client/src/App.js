@@ -1,56 +1,92 @@
-import React, { useState } from 'react';
+// client/src/App.js
+import React, {useState} from 'react';
 import './App.css';
+import ResultDisplay from './ResultDisplay'; // Import the new component
 
 function App() {
-    const [inputText, setInputText] = useState(""); // State for the text area
-    const [analysisResult, setAnalysisResult] = useState(""); // State for the server's response
+    const [inputText, setInputText] = useState("");
+    const [analysisResult, setAnalysisResult] = useState(null); // Default to null
+    const [isLoading, setIsLoading] = useState(false); // For a loading indicator
+    const [error, setError] = useState("");
 
     const handleAnalyzeClick = () => {
-        setAnalysisResult("Analyzing..."); // Show a loading message
+        if (!inputText.trim()) {
+            setError("Please enter some text to analyze.");
+            return;
+        }
+        setIsLoading(true); // Start loading
+        setAnalysisResult(null); // Clear previous results
 
-        // We now use a POST request to send data to the server
         fetch('http://localhost:3001/api/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ text: inputText }), // Send the text from our text area
+            body: JSON.stringify({text: inputText}),
         })
             .then(response => response.json())
             .then(data => {
-                setAnalysisResult(data.analysis);
+                if (data.error) {
+                    // Handle potential errors from the server
+                    setAnalysisResult({label: 'Error', score: 'N/A'});
+                } else {
+                    setAnalysisResult(data.analysis); // Set the whole analysis object
+                }
             })
             .catch(error => {
                 console.error("There was an error fetching the data:", error);
-                setAnalysisResult("Error connecting to the server.");
+                setAnalysisResult({label: 'Error', score: 'N/A'});
+            })
+            .finally(() => {
+                setIsLoading(false); // Stop loading
             });
     };
-
+    const handleClearClick = () => {
+        setInputText("");
+        setAnalysisResult(null);
+        setError("");
+    };
     return (
         <div className="App">
             <header className="App-header">
                 <h1>TruthLens</h1>
                 <p>Enter text below to analyze for misinformation.</p>
 
-                {/* Text area for user input */}
                 <textarea
                     style={{ width: '80%', minHeight: '100px', fontSize: '16px', padding: '10px' }}
                     value={inputText}
-                    onChange={e => setInputText(e.target.value)}
+                    // Clear the validation error when the user starts typing again
+                    onChange={e => {
+                        setInputText(e.target.value);
+                        if (error) setError("");
+                    }}
                     placeholder="Paste a tweet, headline, or post here..."
                 />
 
-                <button onClick={handleAnalyzeClick} style={{ marginTop: '15px', padding: '10px 20px', fontSize: '16px' }}>
-                    Analyze Text
-                </button>
+                {/* Display the validation error message if it exists */}
+                {error && <p style={{ color: '#ff4d4d', fontSize: '14px', margin: '10px 0 0 0' }}>{error}</p>}
 
-                {/* Display the server's response */}
-                {analysisResult && (
-                    <div style={{ marginTop: '20px', padding: '15px', border: '1px solid #61dafb', borderRadius: '5px', backgroundColor: '#20232a' }}>
-                        <p><strong>Analysis Result:</strong></p>
-                        <p>"{analysisResult}"</p>
-                    </div>
-                )}
+                {/* Container for the buttons */}
+                <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                    <button
+                        onClick={handleAnalyzeClick}
+                        style={{ padding: '10px 20px', fontSize: '16px' }}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Analyzing...' : 'Analyze Text'}
+                    </button>
+
+                    <button
+                        onClick={handleClearClick}
+                        style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#6c757d', border: 'none' }}
+                        disabled={isLoading}
+                    >
+                        Clear
+                    </button>
+                </div>
+
+                {/* Conditionally render the ResultDisplay component */}
+                {analysisResult && <ResultDisplay result={analysisResult} />}
 
             </header>
         </div>

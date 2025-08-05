@@ -8,6 +8,7 @@ const port = 3001;
 
 const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
 const HUGGINGFACE_MODEL_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli";
+//const HUGGINGFACE_MODEL_URL = "https://api-inference.huggingface.co/models/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli";
 
 if (!HUGGINGFACE_API_KEY) {
     console.error("Hugging Face API key not found. Make sure you have a .env file with HUGGINGFACE_API_KEY.");
@@ -17,13 +18,13 @@ if (!HUGGINGFACE_API_KEY) {
 app.use(cors());
 app.use(express.json());
 
+// Replace the entire app.post function in server/index.js with this one.
+
 app.post('/api/analyze', async (req, res) => {
     try {
         const receivedText = req.body.text;
         console.log('Received text to analyze:', receivedText);
 
-        // These are the categories we want the AI to classify the text into.
-        // This is perfect for your project's goal. [cite: 18]
         const candidateLabels = ["accurate news", "misinformation", "opinion", "satire"];
 
         console.log("Sending to Hugging Face for analysis...");
@@ -48,23 +49,31 @@ app.post('/api/analyze', async (req, res) => {
         const analysisResult = await response.json();
         console.log("Analysis from Hugging Face:", analysisResult);
 
-        // Let's format the result into a nice string for the frontend
-        let formattedResponse = "Could not determine classification.";
-        if (analysisResult && analysisResult.labels) {
+        // ** CORRECTED LOGIC IS HERE **
+        // First, check if the response has the 'labels' and 'scores' arrays we need.
+        if (analysisResult && Array.isArray(analysisResult.labels) && Array.isArray(analysisResult.scores)) {
+
+            // If they exist, then define our variables.
             const highestScoreIndex = analysisResult.scores.indexOf(Math.max(...analysisResult.scores));
             const topLabel = analysisResult.labels[highestScoreIndex];
             const topScore = (analysisResult.scores[highestScoreIndex] * 100).toFixed(0);
-            formattedResponse = `The text is most likely to be: "${topLabel}" (Confidence: ${topScore}%).`;
+
+            // Now we can safely send the response.
+            res.json({
+                analysis: {
+                    label: topLabel,
+                    score: topScore
+                }
+            });
+        } else {
+            // If the response format is wrong, throw an error.
+            throw new Error("Received an invalid or unexpected response structure from Hugging Face API.");
         }
 
-        // Send the formatted analysis back to the frontend
-        res.json({
-            analysis: formattedResponse
-        });
-
     } catch (error) {
-        console.error("Error calling Hugging Face API:", error);
-        res.status(500).json({ error: "Failed to get analysis from AI." });
+        // This will now catch errors from both the API call and our processing logic.
+        console.error("Error in /api/analyze endpoint:", error);
+        res.status(500).json({ error: "Failed to process the analysis." });
     }
 });
 

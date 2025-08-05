@@ -36,3 +36,35 @@
     transform: rotate(360deg);
   }
 }
+
+/* Add this to the bottom of client/src/App.css */
+
+.result-box {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #61dafb;
+    border-radius: 8px;
+    background-color: #20232a;
+    width: 80%;
+    text-align: left;
+}
+
+.result-misinformation {
+    border-color: #ff4d4d;
+    background-color: #4d2a2a;
+}
+
+.result-accurate-news {
+    border-color: #4caf50;
+    background-color: #2a4d2a;
+}
+
+.result-opinion {
+    border-color: #4d7cff;
+    background-color: #2a3a4d;
+}
+
+.result-satire {
+    border-color: #ffc107;
+    background-color: #4d4a2a;
+}

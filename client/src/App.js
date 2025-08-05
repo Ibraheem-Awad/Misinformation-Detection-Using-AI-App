@@ -18,7 +18,7 @@ function App() {
         })
             .then(response => response.json())
             .then(data => {
-                setAnalysisResult(data.echo); // Update state with the server's echoed message
+                setAnalysisResult(data.analysis);
             })
             .catch(error => {
                 console.error("There was an error fetching the data:", error);

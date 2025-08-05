@@ -84,6 +84,7 @@
     height: 100vh;
     overflow-y: auto;
     text-align: left;
+    color: white;
 }
 
 .history-sidebar h2 {
@@ -179,8 +180,6 @@
     color: #61dafb;
 }
 
-/* Add this to client/src/App.css */
-/* ADD these styles to client/src/App.css */
 .action-btn {
     padding: 10px 20px;
     font-size: 16px;
@@ -209,21 +208,9 @@
     background-color: #5a6268;
 }
 
-
-/* DELETE these styles from client/src/App.css */
-.top-bar {
-    /* ... delete this whole block ... */
-}
-
-.history-toggle-btn {
-    /* ... delete this whole block ... */
-}
-
 .history-toggle-btn:hover {
     background-color: #0056b3;
 }
-
-/* Add this to client/src/App.css */
 
 .scores-list {
     list-style: none;
@@ -239,7 +226,7 @@
 }
 
 .score-label {
-    width: 120px; /* Adjust as needed */
+    width: 120px;
     text-align: right;
     margin-right: 10px;
     text-transform: capitalize;
@@ -260,8 +247,47 @@
 }
 
 .score-percent {
-    width: 50px; /* Adjust as needed */
+    width: 50px;
     text-align: left;
     margin-left: 10px;
     font-weight: bold;
+}
+
+.fact-check-container {
+    width: 80%;
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    background-color: #333;
+    text-align: left;
+}
+
+.fact-check-container h3 {
+    margin-top: 0;
+    font-size: 1.17em;
+}
+
+.fact-check-container p {
+    font-size: 14px;
+    margin: 8px 0;
+}
+
+.claim-review {
+    border-top: 1px solid #555;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.claim-review p {
+    margin: 5px 0;
+}
+
+.claim-review .rating {
+    font-weight: bold;
+    color: #ffc107;
+}
+
+.claim-review a {
+    font-size: 14px;
 }

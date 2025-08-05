@@ -16,7 +16,6 @@ if (!HUGGINGFACE_API_KEY) {
 app.use(cors());
 app.use(express.json());
 
-// Replace the app.post function in server/index.js with this one.
 
 app.post('/api/analyze', async (req, res) => {
     try {
@@ -47,8 +46,6 @@ app.post('/api/analyze', async (req, res) => {
         const analysisResult = await response.json();
         console.log("Analysis from Hugging Face:", analysisResult);
 
-        // ** THIS IS THE MAIN CHANGE **
-        // We now send the entire 'labels' and 'scores' arrays to the frontend.
         if (analysisResult && Array.isArray(analysisResult.labels) && Array.isArray(analysisResult.scores)) {
             res.json({
                 analysis: {
@@ -63,6 +60,46 @@ app.post('/api/analyze', async (req, res) => {
     } catch (error) {
         console.error("Error in /api/analyze endpoint:", error);
         res.status(500).json({ error: "Failed to process the analysis." });
+    }
+});
+
+app.post('/api/factcheck', async (req, res) => {
+    try {
+        const queryText = req.body.text;
+        const apiKey = process.env.GOOGLE_API_KEY;
+
+        if (!apiKey) {
+            throw new Error("Google API key not found.");
+        }
+
+        // The language code is optional but recommended
+        const languageCode = "en";
+        const apiUrl = `https://factchecktools.googleapis.com/v1alpha1/claims:search?query=${encodeURIComponent(queryText)}&languageCode=${languageCode}&key=${apiKey}`;
+
+        console.log("Constructed Google API URL:", apiUrl);
+
+        console.log("Sending query to Google Fact Check API...");
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Google Fact Check API request failed: ${errorBody.error.message}`);
+        }
+
+        const factCheckResult = await response.json();
+        console.log("Result from Google Fact Check API received.");
+
+        console.log("Full Google API Response:", JSON.stringify(factCheckResult, null, 2));
+
+        console.log("Result from Google Fact Check API received.");
+
+        // The API returns an object that contains a 'claims' array.
+        // We will send this array directly to the frontend.
+        res.json({ claims: factCheckResult.claims || [] });
+
+    } catch (error) {
+        console.error("Error in /api/factcheck endpoint:", error);
+        res.status(500).json({ error: "Failed to perform fact-check." });
     }
 });
 

@@ -1,5 +1,3 @@
-// client/src/ResultDisplay.js
-
 import React from 'react';
 
 const descriptions = {
@@ -44,7 +42,7 @@ const ResultDisplay = ({ result, originalText }) => {
         <div className={boxClass}>
             <p><strong>Analysis Breakdown:</strong></p>
 
-            {/* --- NEW: List of all scores --- */}
+            {/* --- List of all scores --- */}
             <ul className="scores-list">
                 {labels.map((label, index) => (
                     <li key={label}>

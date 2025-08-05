@@ -6,7 +6,6 @@ const port = 3001;
 
 const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
 const HUGGINGFACE_MODEL_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli";
-//const HUGGINGFACE_MODEL_URL = "https://api-inference.huggingface.co/models/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli";
 
 if (!HUGGINGFACE_API_KEY) {
     console.error("Hugging Face API key not found. Make sure you have a .env file with HUGGINGFACE_API_KEY.");
@@ -63,43 +62,32 @@ app.post('/api/analyze', async (req, res) => {
     }
 });
 
-app.post('/api/factcheck', async (req, res) => {
+app.post('/api/search-news', async (req, res) => {
     try {
         const queryText = req.body.text;
-        const apiKey = process.env.GOOGLE_API_KEY;
+        const apiKey = process.env.GNEWS_API_KEY;
 
         if (!apiKey) {
-            throw new Error("Google API key not found.");
+            throw new Error("GNews API key not found.");
         }
 
-        // The language code is optional but recommended
-        const languageCode = "en";
-        const apiUrl = `https://factchecktools.googleapis.com/v1alpha1/claims:search?query=${encodeURIComponent(queryText)}&languageCode=${languageCode}&key=${apiKey}`;
+        // We'll take the first 5 words of the query for a concise search
+        const keywords = encodeURIComponent(queryText.split(' ').slice(0, 5).join(' '));
 
-        console.log("Constructed Google API URL:", apiUrl);
+        const apiUrl = `https://gnews.io/api/v4/search?q=${keywords}&lang=en&max=5&apikey=${apiKey}`;
 
-        console.log("Sending query to Google Fact Check API...");
+        console.log("Sending query to GNews API...");
         const response = await fetch(apiUrl);
+        const newsResult = await response.json();
 
-        if (!response.ok) {
-            const errorBody = await response.json();
-            throw new Error(`Google Fact Check API request failed: ${errorBody.error.message}`);
-        }
+        console.log("Result from GNews API received.");
 
-        const factCheckResult = await response.json();
-        console.log("Result from Google Fact Check API received.");
-
-        console.log("Full Google API Response:", JSON.stringify(factCheckResult, null, 2));
-
-        console.log("Result from Google Fact Check API received.");
-
-        // The API returns an object that contains a 'claims' array.
-        // We will send this array directly to the frontend.
-        res.json({ claims: factCheckResult.claims || [] });
+        // GNews returns an 'articles' array
+        res.json({ articles: newsResult.articles || [] });
 
     } catch (error) {
-        console.error("Error in /api/factcheck endpoint:", error);
-        res.status(500).json({ error: "Failed to perform fact-check." });
+        console.error("Error in /api/search-news endpoint:", error);
+        res.status(500).json({ error: "Failed to perform news search." });
     }
 });
 

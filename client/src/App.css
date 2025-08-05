@@ -253,7 +253,7 @@
     font-weight: bold;
 }
 
-.fact-check-container {
+.news-container {
     width: 80%;
     margin-top: 20px;
     padding: 15px;
@@ -261,33 +261,45 @@
     border-radius: 8px;
     background-color: #333;
     text-align: left;
+    color: #ddd;
 }
 
-.fact-check-container h3 {
+.news-container h3 {
     margin-top: 0;
-    font-size: 1.17em;
+    font-size: 1.25em;
+    color: white;
 }
 
-.fact-check-container p {
-    font-size: 14px;
-    margin: 8px 0;
-}
-
-.claim-review {
+.article-item {
     border-top: 1px solid #555;
     padding-top: 10px;
     margin-top: 10px;
 }
 
-.claim-review p {
-    margin: 5px 0;
+.article-item:first-of-type {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
 }
 
-.claim-review .rating {
+.article-title {
+    font-size: 15px;
     font-weight: bold;
-    color: #ffc107;
+    margin: 0 0 5px 0;
 }
 
-.claim-review a {
-    font-size: 14px;
+.article-title a {
+    color: #87cefa;
+    text-decoration: none;
+}
+
+.article-title a:hover {
+    text-decoration: underline;
+}
+
+.article-source {
+    font-size: 13px;
+    font-style: italic;
+    margin: 0;
+    color: #aaa;
 }

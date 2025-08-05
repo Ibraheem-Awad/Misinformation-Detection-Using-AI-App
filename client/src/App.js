@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import ResultDisplay from './ResultDisplay';
-import FactCheckDisplay from './FactCheckDisplay';
+import NewsDisplay from './NewsDisplay';
 
 function App() {
     const [inputText, setInputText] = useState("");
     const [analysisResult, setAnalysisResult] = useState(null);
-    const [factCheckResults, setFactCheckResults] = useState(null);
+    const [newsArticles, setNewsArticles] = useState(null); // Replaced factCheckResults
     const [isLoading, setIsLoading] = useState(false);
-    const [isFactChecking, setIsFactChecking] = useState(false);
+    const [isSearchingNews, setIsSearchingNews] = useState(false); // Replaced isFactChecking
     const [error, setError] = useState("");
     const [history, setHistory] = useState([]);
     const [isHistoryVisible, setIsHistoryVisible] = useState(false);
@@ -30,31 +30,31 @@ function App() {
             setHistory(updatedHistory);
             localStorage.setItem('analysisHistory', JSON.stringify(updatedHistory));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [analysisResult]);
 
     const handleAnalyzeClick = () => {
         if (!inputText.trim()) { setError("Please enter some text to analyze."); return; }
         setIsLoading(true);
         setAnalysisResult(null);
-        setFactCheckResults(null); // Clear previous fact-check results
+        setNewsArticles(null); // Clear previous news results
         fetch('http://localhost:3001/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: inputText }) })
             .then(response => response.json()).then(data => { setAnalysisResult(data.error ? { label: 'Error', score: 'N/A' } : data.analysis); })
             .catch(error => { console.error("Error fetching data:", error); setAnalysisResult({ label: 'Error', score: 'N/A' }); })
             .finally(() => { setIsLoading(false); });
     };
 
-    // --- Handler for the Fact Check button ---
-    const handleFactCheckClick = () => {
+    const handleNewsSearchClick = () => {
         if (!inputText.trim()) { setError("Please enter some text to analyze."); return; }
-        setIsFactChecking(true);
-        setFactCheckResults(null);
-        fetch('http://localhost:3001/api/factcheck', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: inputText }) })
-            .then(response => response.json()).then(data => { setFactCheckResults(data.claims); })
-            .catch(error => { console.error("Error fetching fact-check data:", error); })
-            .finally(() => { setIsFactChecking(false); });
+        setIsSearchingNews(true);
+        setNewsArticles(null);
+        fetch('http://localhost:3001/api/search-news', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: inputText }) })
+            .then(response => response.json()).then(data => { setNewsArticles(data.articles); })
+            .catch(error => { console.error("Error fetching news data:", error); })
+            .finally(() => { setIsSearchingNews(false); });
     };
 
-    const handleClearClick = () => { setInputText(""); setAnalysisResult(null); setFactCheckResults(null); setError(""); };
+    const handleClearClick = () => { setInputText(""); setAnalysisResult(null); setNewsArticles(null); setError(""); };
     const handleClearHistory = () => { setHistory([]); localStorage.removeItem('analysisHistory'); };
     const handleHistoryClick = (text) => { setInputText(text); };
     const toggleHistoryVisibility = () => { setIsHistoryVisible(!isHistoryVisible); };
@@ -72,14 +72,13 @@ function App() {
                     />
                     {error && <p style={{ color: '#ff4d4d', fontSize: '14px', margin: '10px 0 0 0' }}>{error}</p>}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px', justifyContent: 'center' }}>
-                        <button onClick={handleAnalyzeClick} className="action-btn" disabled={isLoading || isFactChecking}>
+                        <button onClick={handleAnalyzeClick} className="action-btn" disabled={isLoading || isSearchingNews}>
                             {isLoading ? 'Analyzing...' : 'AI Analysis'}
                         </button>
-                        {/* --- Fact Check Button --- */}
-                        <button onClick={handleFactCheckClick} className="action-btn" disabled={isLoading || isFactChecking}>
-                            {isFactChecking ? 'Checking...' : 'Find Fact-Checks'}
+                        <button onClick={handleNewsSearchClick} className="action-btn" disabled={isLoading || isSearchingNews}>
+                            {isSearchingNews ? 'Searching...' : 'Search News'}
                         </button>
-                        <button onClick={handleClearClick} className="action-btn secondary-btn" disabled={isLoading || isFactChecking}>
+                        <button onClick={handleClearClick} className="action-btn secondary-btn" disabled={isLoading || isSearchingNews}>
                             Clear
                         </button>
                         <button onClick={toggleHistoryVisibility} className="action-btn secondary-btn">
@@ -87,8 +86,7 @@ function App() {
                         </button>
                     </div>
                     {analysisResult && <ResultDisplay result={analysisResult} originalText={inputText} />}
-                    {/* --- Render Fact Check Results --- */}
-                    {factCheckResults && <FactCheckDisplay claims={factCheckResults} />}
+                    {newsArticles && <NewsDisplay articles={newsArticles} />}
                 </header>
             </div>
             {isHistoryVisible && (

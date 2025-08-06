@@ -91,6 +91,50 @@ app.post('/api/search-news', async (req, res) => {
     }
 });
 
+app.post('/api/detect-bias', async (req, res) => {
+    try {
+        const receivedText = req.body.text;
+        console.log('Received text to detect biases:', receivedText);
+
+        const candidateLabels = ["ad hominem", "appeal to emotion", "strawman", "black-or-white fallacy", "slippery slope", "anecdotal"];
+
+        const response = await fetch(HUGGINGFACE_MODEL_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                inputs: receivedText,
+                parameters: { candidate_labels: candidateLabels },
+            }),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`Hugging Face API request failed: ${response.statusText} - ${errorBody}`);
+        }
+
+        const biasResult = await response.json();
+        console.log("Bias analysis from Hugging Face:", biasResult);
+
+        if (biasResult && Array.isArray(biasResult.labels) && Array.isArray(biasResult.scores)) {
+            res.json({
+                biases: {
+                    labels: biasResult.labels,
+                    scores: biasResult.scores
+                }
+            });
+        } else {
+            throw new Error("Received an invalid response structure from Hugging Face API.");
+        }
+
+    } catch (error) {
+        console.error("Error in /api/detect-bias endpoint:", error);
+        res.status(500).json({ error: "Failed to detect biases." });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server is listening at http://localhost:${port}`);
 });

@@ -270,7 +270,7 @@
     color: white;
 }
 .news-container p {
-    font-size: 0.5em;
+    font-size: 20px;
 }
 
 .article-item {
@@ -286,7 +286,6 @@
 }
 
 .article-title {
-    font-size: 15px;
     font-weight: bold;
     margin: 0 0 5px 0;
 }
@@ -305,4 +304,30 @@
     font-style: italic;
     margin: 0;
     color: #aaa;
+}
+
+.bias-container {
+    width: 80%;
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    background-color: #4d4a2a;
+    text-align: left;
+}
+
+.bias-container h3 {
+    margin-top: 0;
+    font-size: 1.25em;
+    color: #ffc107;
+}
+
+.bias-item p {
+    margin: 5px 0;
+    font-size: 20px;
+}
+
+.bias-container p {
+    margin: 5px 0;
+    font-size: 20px;
 }

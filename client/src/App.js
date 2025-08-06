@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import ResultDisplay from './ResultDisplay';
 import NewsDisplay from './NewsDisplay';
+import BiasDisplay from './BiasDisplay';
 
 function App() {
     const [inputText, setInputText] = useState("");
     const [analysisResult, setAnalysisResult] = useState(null);
-    const [newsArticles, setNewsArticles] = useState(null); // Replaced factCheckResults
+    const [newsArticles, setNewsArticles] = useState(null);
+    const [biasResults, setBiasResults] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [isSearchingNews, setIsSearchingNews] = useState(false); // Replaced isFactChecking
+    const [isSearchingNews, setIsSearchingNews] = useState(false);
+    const [isDetectingBiases, setIsDetectingBiases] = useState(false);
     const [error, setError] = useState("");
     const [history, setHistory] = useState([]);
     const [isHistoryVisible, setIsHistoryVisible] = useState(false);
@@ -37,7 +40,8 @@ function App() {
         if (!inputText.trim()) { setError("Please enter some text to analyze."); return; }
         setIsLoading(true);
         setAnalysisResult(null);
-        setNewsArticles(null); // Clear previous news results
+        setNewsArticles(null);
+        setBiasResults(null); // Clear previous results
         fetch('http://localhost:3001/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: inputText }) })
             .then(response => response.json()).then(data => { setAnalysisResult(data.error ? { label: 'Error', score: 'N/A' } : data.analysis); })
             .catch(error => { console.error("Error fetching data:", error); setAnalysisResult({ label: 'Error', score: 'N/A' }); })
@@ -54,7 +58,17 @@ function App() {
             .finally(() => { setIsSearchingNews(false); });
     };
 
-    const handleClearClick = () => { setInputText(""); setAnalysisResult(null); setNewsArticles(null); setError(""); };
+    const handleDetectBiasClick = () => {
+        if (!inputText.trim()) { setError("Please enter some text to analyze."); return; }
+        setIsDetectingBiases(true);
+        setBiasResults(null);
+        fetch('http://localhost:3001/api/detect-bias', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: inputText }) })
+            .then(response => response.json()).then(data => { setBiasResults(data.biases); })
+            .catch(error => { console.error("Error fetching bias data:", error); })
+            .finally(() => { setIsDetectingBiases(false); });
+    };
+
+    const handleClearClick = () => { setInputText(""); setAnalysisResult(null); setNewsArticles(null); setBiasResults(null); setError(""); };
     const handleClearHistory = () => { setHistory([]); localStorage.removeItem('analysisHistory'); };
     const handleHistoryClick = (text) => { setInputText(text); };
     const toggleHistoryVisibility = () => { setIsHistoryVisible(!isHistoryVisible); };
@@ -72,13 +86,16 @@ function App() {
                     />
                     {error && <p style={{ color: '#ff4d4d', fontSize: '14px', margin: '10px 0 0 0' }}>{error}</p>}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px', justifyContent: 'center' }}>
-                        <button onClick={handleAnalyzeClick} className="action-btn" disabled={isLoading || isSearchingNews}>
+                        <button onClick={handleAnalyzeClick} className="action-btn" disabled={isLoading || isSearchingNews || isDetectingBiases}>
                             {isLoading ? 'Analyzing...' : 'AI Analysis'}
                         </button>
-                        <button onClick={handleNewsSearchClick} className="action-btn" disabled={isLoading || isSearchingNews}>
+                        <button onClick={handleNewsSearchClick} className="action-btn" disabled={isLoading || isSearchingNews || isDetectingBiases}>
                             {isSearchingNews ? 'Searching...' : 'Search News'}
                         </button>
-                        <button onClick={handleClearClick} className="action-btn secondary-btn" disabled={isLoading || isSearchingNews}>
+                        <button onClick={handleDetectBiasClick} className="action-btn" disabled={isLoading || isSearchingNews || isDetectingBiases}>
+                            {isDetectingBiases ? 'Detecting...' : 'Detect Fallacies'}
+                        </button>
+                        <button onClick={handleClearClick} className="action-btn secondary-btn" disabled={isLoading || isSearchingNews || isDetectingBiases}>
                             Clear
                         </button>
                         <button onClick={toggleHistoryVisibility} className="action-btn secondary-btn">
@@ -86,6 +103,7 @@ function App() {
                         </button>
                     </div>
                     {analysisResult && <ResultDisplay result={analysisResult} originalText={inputText} />}
+                    {biasResults && <BiasDisplay biases={biasResults} />}
                     {newsArticles && <NewsDisplay articles={newsArticles} />}
                 </header>
             </div>
